@@ -75,7 +75,7 @@ def single_train_fn(
                 pl.lit(model.name).alias("name"),
             ]
         )
-        i_va_df.write_csv(i_out_dir / "va_pred.csv")
+        i_va_df.write_parquet(i_out_dir / "va_pred.parquet")
         va_records.append(i_va_df)
         logger.info("   - ✅ Successfully predicted validation data")
 
@@ -113,7 +113,7 @@ def single_train_fn(
     with open(out_dir / "va_scores.json", "w") as f:
         json.dump(va_scores, f, indent=4)
 
-    va_result_df.write_csv(out_dir / "va_result.csv")
+    va_result_df.write_parquet(out_dir / "va_result.parquet")
 
     return va_result_df, va_scores, trained_models
 
@@ -186,6 +186,6 @@ def single_inference_fn(
     # Save prediction
     excepted_features = [f for f in features_df.columns if f not in feature_names]
     te_result_df = features_df.select(excepted_features).with_columns(pl.Series("pred", te_pred_ave))
-    te_result_df.write_csv(out_dir / "te_result.csv")
+    te_result_df.write_parquet(out_dir / "te_result.parquet")
 
     return te_result_df
