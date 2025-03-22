@@ -1,0 +1,15 @@
+{
+  "name": "atmacup19",
+  "dockerComposeFile": [
+    "./compose.yml"
+  ],
+  "service": "workspace",
+  "workspaceFolder": "/workspace",
+  "containerEnv": {
+    "TZ": "Asia/Tokyo"
+  },
+  "features": {
+    "ghcr.io/dhoeric/features/google-cloud-cli:1": {}
+  },
+  "postCreateCommand": "sh .devcontainer/PostCreateCommand.sh"
+}
