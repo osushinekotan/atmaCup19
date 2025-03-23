@@ -130,6 +130,7 @@ class AggregateEncoder(BaseEncoder):
         first_expr = agg_exprs.pop(0)
         self.mapping_df = df.group_by(self.group_keys, maintain_order=True).agg(first_expr)
         for expr in agg_exprs:
+            print(f"processing: {expr}")
             self.mapping_df = self.mapping_df.join(
                 df.group_by(self.group_keys, maintain_order=True).agg(expr),
                 on=self.group_keys,
