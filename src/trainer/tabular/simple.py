@@ -23,24 +23,26 @@ def single_train_fn(
     fold_col: str | Path = "fold",
     out_dir: str | Path = "./outputs",
     eval_fn: None = None,
-    train_folds: list[int] | None = None,
+    valid_folds: list[int] | None = None,
     overwrite: bool = False,
     pred_col_name: str = "pred",
+    val_features_df: pl.DataFrame | None = None,
     **kwargs,
 ) -> tuple[pl.DataFrame, dict[str, float], list[BaseWrapper]]:
     va_records, va_scores, trained_models = [], {}, []
     out_dir = Path(out_dir) / model.name
 
-    train_folds = train_folds or features_df[fold_col].unique().to_list()
+    valid_folds = valid_folds or features_df[fold_col].unique().to_list()
     use_eval_metric_extra_va_df = kwargs.get("use_eval_metric_extra_va_df", False)
     enable_plot_feature_importance = kwargs.get("enable_plot_feature_importance", True)
 
-    for i_fold in train_folds:
+    for i_fold in valid_folds:
         logger.info(f"🚀 >>> Start training fold {i_fold} =============")
         tr_x = features_df.filter(pl.col(fold_col) != i_fold).select(feature_cols).to_numpy()
         tr_y = features_df.filter(pl.col(fold_col) != i_fold)[target_col].to_numpy()
 
-        va_df = features_df.filter(pl.col(fold_col) == i_fold)
+        # 明示的に指定された validation data がある場合はそちらを使う
+        va_df = features_df.filter(pl.col(fold_col) == i_fold) if val_features_df is None else val_features_df
         va_x = va_df.select(feature_cols).to_numpy()
         va_y = va_df[target_col].to_numpy()
 
@@ -69,7 +71,7 @@ def single_train_fn(
         except IndexError:
             pass
 
-        i_va_df = va_df.select(meta_cols).with_columns(
+        i_va_df = va_df.select([c for c in meta_cols if c in va_df.columns]).with_columns(
             [
                 pl.Series(va_pred).alias(pred_col_name),
                 pl.lit(model.name).alias("name"),
