@@ -69,9 +69,14 @@ class LightGBMWapper(BaseWrapper):
 
         self.params = self.model.get_params()
         self.eval_metric = self.fit_params.get("eval_metric")
+        self.best_iteration = None
 
     def initialize(self) -> None:
         params = copy.deepcopy(self.params)
+        if self.best_iteration:
+            params["n_estimators"] = self.best_iteration
+            print(f"Update n_estimators to {self.best_iteration}")
+
         self.model = LGBMModel(**params)
 
     def reshape_y(self, y: NDArray) -> NDArray:
@@ -85,19 +90,23 @@ class LightGBMWapper(BaseWrapper):
         self,
         tr_x: NDArray,
         tr_y: NDArray,
-        va_x: NDArray,
-        va_y: NDArray,
+        va_x: NDArray | None = None,
+        va_y: NDArray | None = None,
         tr_w: NDArray | None = None,
     ) -> None:
         self.initialize()
         self.model.fit(
             tr_x,
             self.reshape_y(tr_y),
-            eval_set=[(va_x, self.reshape_y(va_y))],
+            eval_set=[(va_x, self.reshape_y(va_y))] if va_x is not None else None,
             sample_weight=list(tr_w) if tr_w is not None else None,
-            **self.fit_params,
+            **self.fit_params
+            if self.best_iteration is None
+            else {},  # full training で best_iteration がある場合は無視
         )
         self.fitted = True
+        if self.best_iteration is None:
+            self.best_iteration = self.model.best_iteration_
 
     def predict(self, X: NDArray) -> NDArray:  # noqa
         if not self.fitted:
@@ -130,6 +139,7 @@ class XGBoostRegressorWrapper(BaseWrapper):
 
         self.params = self.model.get_params()
         self.eval_metric = self.params.get("eval_metric")
+        self.best_iteration = None
 
     def initialize(self) -> None:
         params = copy.deepcopy(self.params)
@@ -141,14 +151,18 @@ class XGBoostRegressorWrapper(BaseWrapper):
             early_stopping_callback = xgb.callback.EarlyStopping(**self.early_stopping_params)
             params["callbacks"] = callbacks + [early_stopping_callback]
 
+        if self.best_iteration:
+            params["n_estimators"] = self.best_iteration
+            print(f"Update n_estimators to {self.best_iteration}")
+
         self.model = XGBRegressor(**params)
 
     def fit(
         self,
         tr_x: NDArray,
         tr_y: NDArray,
-        va_x: NDArray,
-        va_y: NDArray,
+        va_x: NDArray | None = None,
+        va_y: NDArray | None = None,
         tr_w: NDArray | None = None,
     ) -> None:
         self.initialize()
@@ -162,20 +176,26 @@ class XGBoostRegressorWrapper(BaseWrapper):
                 .astype({x: "category" for x in self.cat_features})
             )
             va_x = (
-                pl.DataFrame(va_x, schema=self.feature_names)
-                .cast({x: pl.String for x in self.cat_features})
-                .cast({x: pl.Categorical for x in self.cat_features})
-                .to_pandas()
-                .astype({x: "category" for x in self.cat_features})
+                (
+                    pl.DataFrame(va_x, schema=self.feature_names)
+                    .cast({x: pl.String for x in self.cat_features})
+                    .cast({x: pl.Categorical for x in self.cat_features})
+                    .to_pandas()
+                    .astype({x: "category" for x in self.cat_features})
+                )
+                if va_x is not None
+                else None
             )
         self.model.fit(
             tr_x,
             tr_y,
-            eval_set=[(va_x, va_y)],
+            eval_set=[(va_x, va_y)] if self.best_iteration is None else None,
             sample_weight=tr_w,
-            **self.fit_params,
+            **self.fit_params if self.best_iteration is None else {},
         )
         self.fitted = True
+        if self.best_iteration is None:
+            self.best_iteration = self.model.best_iteration
 
     def predict(self, X: NDArray) -> NDArray:  # noqa
         if not self.fitted:
@@ -205,6 +225,10 @@ class XGBoostClassifierWrapper(XGBoostRegressorWrapper):
             callbacks = params.get("callbacks") or []
             early_stopping_callback = xgb.callback.EarlyStopping(**self.early_stopping_params)
             params["callbacks"] = callbacks + [early_stopping_callback]
+
+        if self.best_iteration:
+            params["n_estimators"] = self.best_iteration
+            print(f"Update n_estimators to {self.best_iteration}")
 
         self.model = xgb.XGBClassifier(**params)
 
@@ -247,18 +271,22 @@ class CatBoostRegressorWrapper(BaseWrapper):
 
         self.loss_function = self.model.get_params().get("loss_function")
         self.multi_output = multi_output
+        self.best_iteration = None
 
     def initialize(self) -> None:
         params = copy.deepcopy(self.model.get_params())
         params["eval_metric"] = self.eval_metric
+        if self.best_iteration:
+            params["n_estimators"] = self.best_iteration
+            print(f"Update n_estimators to {self.best_iteration}")
         self.model = CatBoostRegressor(**params)
 
     def fit(
         self,
         tr_x: NDArray,
         tr_y: NDArray,
-        va_x: NDArray,
-        va_y: NDArray,
+        va_x: NDArray | None = None,
+        va_y: NDArray | None = None,
         tr_w: NDArray | None = None,
     ) -> None:
         self.initialize()
@@ -270,20 +298,25 @@ class CatBoostRegressorWrapper(BaseWrapper):
                 .to_pandas()
             )
             va_x = (
-                pl.DataFrame(va_x, schema=self.feature_names)
-                .cast({x: pl.String for x in self.cat_features})
-                .cast({x: pl.Categorical for x in self.cat_features})
-                .to_pandas()
+                (
+                    pl.DataFrame(va_x, schema=self.feature_names)
+                    .cast({x: pl.String for x in self.cat_features})
+                    .cast({x: pl.Categorical for x in self.cat_features})
+                    .to_pandas()
+                )
+                if va_x is not None
+                else None
             )
 
         self.model.fit(
             tr_x,
             tr_y,
-            eval_set=(va_x, va_y),
+            eval_set=(va_x, va_y) if self.best_iteration is None else None,
             sample_weight=tr_w,
-            **self.fit_params,
+            **self.fit_params if self.best_iteration is None else {},
         )
         self.fitted = True
+        self.best_iteration = self.model.get_best_iteration()
 
     def predict(self, X: NDArray) -> NDArray:  # noqa
         if self.cat_features:
@@ -319,6 +352,9 @@ class CatBoostClassifierWrapper(CatBoostRegressorWrapper):
     def initialize(self) -> None:
         params = copy.deepcopy(self.model.get_params())
         params["eval_metric"] = self.eval_metric
+        if self.best_iteration:
+            params["n_estimators"] = self.best_iteration
+            print(f"Update n_estimators to {self.best_iteration}")
         self.model = CatBoostClassifier(**params)
 
     def predict(self, X: NDArray) -> NDArray:  # noqa

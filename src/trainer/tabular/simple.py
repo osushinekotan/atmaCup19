@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def single_train_fn(
+def single_train_fn(  # noqa: C901
     model: BaseWrapper,
     features_df: pl.DataFrame,
     feature_cols: list[str],
@@ -27,8 +27,12 @@ def single_train_fn(
     overwrite: bool = False,
     pred_col_name: str = "pred",
     val_features_df: pl.DataFrame | None = None,
+    full_training: bool = False,
     **kwargs,
 ) -> tuple[pl.DataFrame, dict[str, float], list[BaseWrapper]]:
+    if (val_features_df is None) and full_training:
+        raise ValueError("val_features_df must be specified when full_training is True")
+
     va_records, va_scores, trained_models = [], {}, []
     out_dir = Path(out_dir) / model.name
 
@@ -60,12 +64,22 @@ def single_train_fn(
             logger.info(f"   - ❌ Skip training fold {i_fold}")
         else:
             model.fit(tr_x=tr_x, tr_y=tr_y, va_x=va_x, va_y=va_y, tr_w=tr_w)
+            if not full_training:
+                model.save(out_dir=i_out_dir)
+
+        va_pred = model.predict(va_x)
+
+        if full_training:
+            logger.info("   - 🚀 >>> Start full training")
+            full_df = pl.concat([features_df, val_features_df], how="diagonal_relaxed")
+            tr_x_full = full_df.select(feature_cols).to_numpy()
+            tr_y_full = full_df[target_col].to_numpy()
+            tr_w_full = full_df[weight_col].to_numpy() if weight_col else None
+            model.fit(tr_x=tr_x_full, tr_y=tr_y_full, tr_w=tr_w_full)  # NOTE: update best iter
             model.save(out_dir=i_out_dir)
 
         trained_models.append(copy.deepcopy(model))
         logger.info("   - ✅ Successfully saved model")
-
-        va_pred = model.predict(va_x)
 
         try:
             if va_pred.shape[1] == 1:
