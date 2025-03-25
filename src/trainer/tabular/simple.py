@@ -34,7 +34,8 @@ def single_train_fn(  # noqa: C901
         raise ValueError("val_features_df must be specified when full_training is True")
 
     va_records, va_scores, trained_models = [], {}, []
-    out_dir = Path(out_dir) / model.name
+    model_name = model.name
+    out_dir = Path(out_dir) / model_name
 
     valid_folds = valid_folds or features_df[fold_col].unique().to_list()
     valid_folds = valid_folds if (len(valid_folds)) > 1 else [min(valid_folds) - 1]  # holdout
@@ -125,6 +126,7 @@ def single_train_fn(  # noqa: C901
             feature_importance_col="feature_importance",
             fold_col="fold",
             top_k=50,
+            title=model_name,
         )
         fig.savefig(out_dir / "feature_importance.png", dpi=300)
 

@@ -15,6 +15,7 @@ def plot_feature_importance(
     feature_importance_col: str = "feature_importance",
     fold_col: str = "fold",
     top_k: int = None,
+    title: str = "Feature Importance",
 ) -> plt.Figure:
     # Determine if it's a single fold or multiple folds
     if fold_col not in df.columns:
@@ -56,7 +57,7 @@ def plot_feature_importance(
             order=feature_order,
             ax=ax,
         )
-        ax.set_title("Feature Importance Across Folds", fontsize=16)
+        ax.set_title(title, fontsize=12)
 
     ax.set_xlabel("Feature Importance", fontsize=12)
     ax.set_ylabel("Feature Name", fontsize=12)
