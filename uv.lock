@@ -32,6 +32,7 @@ dependencies = [
     { name = "catboost" },
     { name = "category-encoders" },
     { name = "japanize-matplotlib" },
+    { name = "jpholiday" },
     { name = "lightgbm" },
     { name = "matplotlib" },
     { name = "pandas" },
@@ -57,6 +58,7 @@ requires-dist = [
     { name = "catboost", specifier = ">=1.2.7" },
     { name = "category-encoders", specifier = ">=2.8.1" },
     { name = "japanize-matplotlib", specifier = ">=1.1.3" },
+    { name = "jpholiday", specifier = ">=1.0.1" },
     { name = "lightgbm", specifier = ">=4.6.0" },
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "pandas", specifier = ">=2.2.3" },
@@ -448,6 +450,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/64/33/60135848598c076ce4b231e1b1895170f45fbcaeaa2c9d5e38b04db70c35/joblib-1.4.2.tar.gz", hash = "sha256:2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e", size = 2116621 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/91/29/df4b9b42f2be0b623cbd5e2140cafcaa2bef0759a00b7b70104dcfe2fb51/joblib-1.4.2-py3-none-any.whl", hash = "sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6", size = 301817 },
+]
+
+[[package]]
+name = "jpholiday"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/3a/b64c906e12c2590b4e7668deae9cba57dab9794d9ed6d6b949d459dbb686/jpholiday-1.0.1.tar.gz", hash = "sha256:62438d1bf7ddb3e3d12edaab7a640e3434d08b87a84bffdb6f2eeef0410f1cef", size = 18501 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2a/07/252bb958d0fa90e7a335ef029d81ff1962291235adb67684767413bcd886/jpholiday-1.0.1-py3-none-any.whl", hash = "sha256:098074d749d3630d23167152ea4c419653d4c26b1134268a7681c59fb07d30ed", size = 14061 },
 ]
 
 [[package]]
