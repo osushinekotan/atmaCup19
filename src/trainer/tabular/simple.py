@@ -37,7 +37,7 @@ def single_train_fn(  # noqa: C901
     out_dir = Path(out_dir) / model.name
 
     valid_folds = valid_folds or features_df[fold_col].unique().to_list()
-    valid_folds = n_valid_folds if (n_valid_folds := len(valid_folds)) > 1 else [min(valid_folds) - 1]  # holdout
+    valid_folds = valid_folds if (len(valid_folds)) > 1 else [min(valid_folds) - 1]  # holdout
 
     use_eval_metric_extra_va_df = kwargs.get("use_eval_metric_extra_va_df", False)
     enable_plot_feature_importance = kwargs.get("enable_plot_feature_importance", True)
