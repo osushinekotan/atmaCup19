@@ -99,6 +99,8 @@ def _create_arg_signature(func: Callable, args: tuple, kwargs: dict) -> str:
         if hasattr(value, "__hash__") and value.__hash__ is not None:
             # ハッシュ可能なオブジェクト
             value_str = f"{name}:{str(value)}"
+        elif isinstance(value, list):
+            value_str = f"{name}:{str(value)}"
         else:
             print(f"Warning: Cannot hash {name}")
             continue
