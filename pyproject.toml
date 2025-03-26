@@ -13,11 +13,13 @@ dependencies = [
     "matplotlib>=3.10.1",
     "networkx>=3.4.2",
     "pandas>=2.2.3",
+    "plotly>=6.0.1",
     "polars>=1.25.2",
     "pyarrow>=19.0.1",
     "scikit-learn>=1.6.1",
     "seaborn>=0.13.2",
     "tqdm>=4.67.1",
+    "umap-learn>=0.5.7",
     "xgboost>=3.0.0",
 ]
 
@@ -28,6 +30,7 @@ dev-dependencies = [
     "ruff>=0.7.0",
     "pre-commit>=4.0.1",
     "rootutils>=1.0.7",
+    "nbformat>=5.10.4",
 ]
 
 [tool.ruff]
