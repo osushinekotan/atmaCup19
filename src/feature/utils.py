@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import ParamSpec, TypeVar, cast, overload
 
 import joblib
+import polars as pl
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -101,6 +102,8 @@ def _create_arg_signature(func: Callable, args: tuple, kwargs: dict) -> str:
             value_str = f"{name}:{str(value)}"
         elif isinstance(value, list):
             value_str = f"{name}:{str(value)}"
+        elif isinstance(value, pl.DataFrame):
+            value_str = f"{name}:DataFrame({value.head()})"
         else:
             print(f"Warning: Cannot hash {name}")
             continue
