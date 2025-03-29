@@ -70,14 +70,19 @@ def single_train_fn(  # noqa: C901
 
         va_pred = model.predict(va_x)
 
-        if full_training:
+        if full_training and (overwrite):
             logger.info("   - 🚀 >>> Start full training")
             full_df = pl.concat([features_df, val_features_df], how="diagonal_relaxed")
             tr_x_full = full_df.select(feature_cols).to_numpy()
             tr_y_full = full_df[target_col].to_numpy()
             tr_w_full = full_df[weight_col].to_numpy() if weight_col else None
             model.fit(tr_x=tr_x_full, tr_y=tr_y_full, tr_w=tr_w_full)  # NOTE: update best iter
-            model.save(out_dir=i_out_dir)
+            model.save(out_dir=i_out_dir / "full")
+            logger.info("   - ✅ Successfully saved model")
+
+        if not full_training and (not overwrite) and (model.get_save_path(out_dir=i_out_dir / "full").exists()):
+            model.load(out_dir=i_out_dir / "full")
+            logger.info("   - ❌ Skip full training")
 
         trained_models.append(copy.deepcopy(model))
         logger.info("   - ✅ Successfully saved model")
