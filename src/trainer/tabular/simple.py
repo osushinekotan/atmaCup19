@@ -65,8 +65,7 @@ def single_train_fn(  # noqa: C901
             logger.info(f"   - ❌ Skip training fold {i_fold}")
         else:
             model.fit(tr_x=tr_x, tr_y=tr_y, va_x=va_x, va_y=va_y, tr_w=tr_w)
-            if not full_training:
-                model.save(out_dir=i_out_dir)
+            model.save(out_dir=i_out_dir)
 
         va_pred = model.predict(va_x)
 
