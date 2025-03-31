@@ -26,11 +26,24 @@ train_session_df = train_session_df.filter(pl.col("session_id").is_in(valid_sess
 
 ## Feature Engineering
 
+### session feature
+
 1. 商品カテゴリを買った日から何日後の session か特徴量
 2. rolling 集約系の特徴量
+   - 直近 6mo/1mo/1w/3d
+   - 平均・合計・分散・最大
+   - 売上数量・割引数量
 3. rolling 集約 -> svd 特徴量
+   - 直近 6mo
+   - 合計
+   - 売上数量
 4. online target encoding 特徴量
-5. 日付や年代などの特徴量
+
+### basic feature
+
+1. 時間・日付系の特徴量: [曜日、祝日など]
+2. ユーザー特徴量: [年代・性別、顧客 CD など]
+3. その他特徴量: 店舗名など
 
 - 合計 1000~2000 程度の特徴量を生成
 - リークしないように特徴生成
