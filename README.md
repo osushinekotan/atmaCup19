@@ -1,5 +1,7 @@
 # atmaCup19
 
+https://github.com/osushinekotan/atmaCup19
+
 ## validation
 
 「[より"テスト"っぽい検証方法](https://www.guruguru.science/competitions/26/discussions/d4ddc671-1c92-4d9d-9e21-41ffff7df100/)」を参考に holdout で検証用データを作成。
